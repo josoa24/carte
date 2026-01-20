@@ -54,5 +54,16 @@ services:
       - app-java
       - tileserver
 
+  mobile-utilisateur:
+    build:
+      context: ./mobile-utilisateur
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "8100:80"
+    depends_on:
+      - app-java
+      - tileserver
+
 volumes:
   postgres_data:

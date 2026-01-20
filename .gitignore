@@ -64,3 +64,15 @@ lerna-debug.log*
 
 # TypeScript
 *.tsbuildinfo
+
+### Ionic & Mobile (mobile-utilisateur) ###
+mobile-utilisateur/node_modules
+mobile-utilisateur/.angular
+mobile-utilisateur/www
+mobile-utilisateur/platforms
+mobile-utilisateur/plugins
+mobile-utilisateur/.sourcemaps
+mobile-utilisateur/.sass-cache
+mobile-utilisateur/.versions
+mobile-utilisateur/coverage
+
