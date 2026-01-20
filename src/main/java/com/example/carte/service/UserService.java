@@ -66,31 +66,26 @@ public class UserService {
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Vérifier si le compte est verrouillé
         if (user.isLocked()) {
             if (user.getLockTime() != null && 
                 LocalDateTime.now().isAfter(user.getLockTime().plusMinutes(lockDurationMinutes))) {
-                // Débloquer le compte après la durée de verrouillage
                 unlockUser(user);
             } else {
                 throw new RuntimeException("Account is locked. Try again later.");
             }
         }
 
-        // Vérifier le mot de passe
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             handleFailedLogin(user);
             throw new RuntimeException("Invalid password");
         }
 
-        // Réinitialiser les tentatives de connexion en cas de succès
         if (user.getFailedLoginAttempts() > 0) {
             user.setFailedLoginAttempts(0);
             user.setLockTime(null);
             userRepository.save(user);
         }
 
-        // Générer le token JWT
         String token = jwtTokenProvider.generateToken(user.getUsername());
 
         return new AuthResponse(token, user.getId(), user.getUsername(), 
