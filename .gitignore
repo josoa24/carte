@@ -76,3 +76,15 @@ mobile-utilisateur/.sass-cache
 mobile-utilisateur/.versions
 mobile-utilisateur/coverage
 
+### Ionic & Mobile (mobil-utilisateur) ###
+mobil-utilisateur/node_modules
+mobil-utilisateur/.angular
+mobil-utilisateur/www
+mobil-utilisateur/platforms
+mobil-utilisateur/plugins
+mobil-utilisateur/.sourcemaps
+mobil-utilisateur/.sass-cache
+mobil-utilisateur/.versions
+mobil-utilisateur/coverage
+
+
