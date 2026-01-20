@@ -21,7 +21,7 @@ services:
     image: maptiler/tileserver-gl:v4.4.0
     restart: always
     ports:
-      - "8080:8080"
+      - "8083:8080"
     volumes:
       - ./tiles/antananarivo:/data
 
@@ -31,7 +31,7 @@ services:
       dockerfile: Dockerfile
     restart: always
     ports:
-      - "8081:8080"
+      - "8082:8080"
     depends_on:
       db-local:
         condition: service_healthy
@@ -42,6 +42,17 @@ services:
       TILESERVER_URL: http://tileserver:8080
     volumes:
       - ./logs:/app/logs  # Optionnel pour logs
+
+  web-manager:
+    build:
+      context: ./web-manager
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "3000:80"
+    depends_on:
+      - app-java
+      - tileserver
 
 volumes:
   postgres_data:
