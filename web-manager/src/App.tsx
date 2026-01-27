@@ -3,7 +3,7 @@ import { AuthProvider } from './context/AuthContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
-import PrivateRoute from './components/PrivateRoute';
+import Carte from './pages/Carte';
 
 function App() {
   return (
@@ -12,15 +12,9 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route
-            path="/dashboard"
-            element={
-              <PrivateRoute>
-                <Dashboard />
-              </PrivateRoute>
-            }
-          />
-          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/carte" element={<Carte />} />
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </Router>
     </AuthProvider>
