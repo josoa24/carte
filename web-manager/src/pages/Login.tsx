@@ -40,10 +40,15 @@ const Login = () => {
   return (
     <div className="login-container">
       <div className="login-card">
-        <h1>Connexion</h1>
+        <div className="login-header">
+          <div className="logo-circle">
+            <i className="bx bx-user-circle"></i>
+          </div>
+          <h1>Connexion</h1>
+          <p className="subtitle">Accédez à votre tableau de bord</p>
+        </div>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="username">Nom d'utilisateur</label>
             <input
               type="text"
               id="username"
@@ -51,10 +56,12 @@ const Login = () => {
               onChange={(e) => setUsername(e.target.value)}
               required
               autoComplete="username"
+              placeholder="" 
             />
+            <label htmlFor="username">Nom d'utilisateur</label>
+            <i className="bx bx-user"></i>
           </div>
           <div className="form-group">
-            <label htmlFor="password">Mot de passe</label>
             <input
               type="password"
               id="password"
@@ -62,16 +69,32 @@ const Login = () => {
               onChange={(e) => setPassword(e.target.value)}
               required
               autoComplete="current-password"
+              placeholder=""
             />
+            <label htmlFor="password">Mot de passe</label>
+            <i className="bx bx-lock-alt"></i>
           </div>
-          {error && <div className="error-message">{error}</div>}
+          {error && <div className="error-message">
+            <i className="bx bx-error-circle"></i>
+            {error}
+          </div>}
           <button type="submit" className="btn-primary" disabled={loading}>
-            {loading ? 'Connexion...' : 'Se connecter'}
+            {loading ? (
+              <>
+                <i className="bx bx-loader-alt bx-spin"></i>
+                Connexion...
+              </>
+            ) : (
+              <>
+                <i className="bx bx-log-in"></i>
+                Se connecter
+              </>
+            )}
           </button>
         </form>
         <div className="login-footer">
           <p>
-            Pas encore de compte ? <Link to="/register">S'inscrire</Link>
+            Pas encore de compte ? <Link to="/register">Créer un compte</Link>
           </p>
         </div>
       </div>

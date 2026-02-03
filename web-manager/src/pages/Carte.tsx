@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { Icon } from 'leaflet';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
+import { signalementService, type Signalement } from '../services/api';
 import 'leaflet/dist/leaflet.css';
 import 'boxicons/css/boxicons.min.css';
 
@@ -211,120 +212,51 @@ const styles = {
   },
 };
 
-interface Signalement {
-  id: number;
-  titre: string;
-  latitude: number;
-  longitude: number;
-  date: string;
-  status: 'nouveau' | 'en_cours' | 'termine';
-  surface: number;
-  budget: number;
-  entreprise: string;
-  description: string;
-}
-
-// Données statiques des signalements
-const SIGNALEMENTS: Signalement[] = [
-  {
-    id: 1,
-    titre: 'Nid de poule RN7',
-    latitude: -18.8792,
-    longitude: 47.5079,
-    date: '2024-01-15',
-    status: 'nouveau',
-    surface: 12.5,
-    budget: 2500000,
-    entreprise: 'COLAS Madagascar',
-    description: 'Nid de poule profond sur la RN7, km 15',
-  },
-  {
-    id: 2,
-    titre: 'Fissure Route Digue',
-    latitude: -18.9204,
-    longitude: 47.5247,
-    date: '2024-01-10',
-    status: 'en_cours',
-    surface: 25.3,
-    budget: 5800000,
-    entreprise: 'SOGEA SATOM',
-    description: 'Fissures importantes sur la route de la digue',
-  },
-  {
-    id: 3,
-    titre: 'Affaissement RN1',
-    latitude: -18.8531,
-    longitude: 47.5079,
-    date: '2024-01-05',
-    status: 'termine',
-    surface: 18.7,
-    budget: 3200000,
-    entreprise: 'RAZEL-BEC',
-    description: 'Affaissement de la chaussée réparé',
-  },
-  {
-    id: 4,
-    titre: 'Dégradation Analamahitsy',
-    latitude: -18.8983,
-    longitude: 47.5361,
-    date: '2024-01-18',
-    status: 'nouveau',
-    surface: 8.2,
-    budget: 1500000,
-    entreprise: 'COLAS Madagascar',
-    description: 'Dégradation importante nécessitant intervention',
-  },
-  {
-    id: 5,
-    titre: 'Réfection Bypass',
-    latitude: -18.9245,
-    longitude: 47.5403,
-    date: '2024-01-12',
-    status: 'en_cours',
-    surface: 45.6,
-    budget: 12000000,
-    entreprise: 'SOGEA SATOM',
-    description: 'Réfection complète de la zone',
-  },
-  {
-    id: 6,
-    titre: 'Réparation Ambohijatovo',
-    latitude: -18.9137,
-    longitude: 47.5215,
-    date: '2023-12-28',
-    status: 'termine',
-    surface: 15.4,
-    budget: 2800000,
-    entreprise: 'RAZEL-BEC',
-    description: 'Réparation terminée avec succès',
-  },
-];
-
 const Carte = () => {
   const navigate = useNavigate();
   const [activeTab] = useState<'list' | 'create' | 'edit'>('list');
+  const [signalements, setSignalements] = useState<Signalement[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fonction pour charger les signalements depuis l'API locale
+  const fetchSignalements = async () => {
+    try {
+      setLoading(true);
+      const data = await signalementService.getAll();
+      setSignalements(data);
+    } catch (error) {
+      console.error('Erreur chargement signalements:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Charger les signalements au démarrage
+  useEffect(() => {
+    fetchSignalements();
+  }, []);
 
   // Calcul des statistiques
-  const nbPoints = SIGNALEMENTS.length;
-  const totalSurface = SIGNALEMENTS.reduce((acc, s) => acc + s.surface, 0);
-  const totalBudget = SIGNALEMENTS.reduce((acc, s) => acc + s.budget, 0);
-  const nbTermine = SIGNALEMENTS.filter(s => s.status === 'termine').length;
-  const avancement = Math.round((nbTermine / nbPoints) * 100);
+  const nbPoints = signalements.length;
+  const totalSurface = signalements.reduce((acc, s) => acc + (s.surfaceM2 || 0), 0);
+  const totalBudget = signalements.reduce((acc, s) => acc + (s.budget || 0), 0);
+  const nbTermine = signalements.filter(s => s.statut === 'RESOLU').length;
+  const avancement = nbPoints > 0 ? Math.round((nbTermine / nbPoints) * 100) : 0;
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'nouveau': return 'Nouveau';
-      case 'en_cours': return 'En cours';
-      case 'termine': return 'Terminé';
+      case 'EN_ATTENTE': return 'En attente';
+      case 'EN_COURS': return 'En cours';
+      case 'RESOLU': return 'Résolu';
       default: return status;
     }
   };
 
   const getStatusStyle = (status: string) => {
     switch (status) {
-      case 'nouveau': return styles.statusNouveau;
-      case 'en_cours': return styles.statusEnCours;
-      case 'termine': return styles.statusTermine;
+      case 'EN_ATTENTE': return styles.statusNouveau;
+      case 'EN_COURS': return styles.statusEnCours;
+      case 'RESOLU': return styles.statusTermine;
       default: return {};
     }
   };
@@ -351,6 +283,7 @@ const Carte = () => {
         activeTab={activeTab} 
         onTabChange={() => {}}
         userCount={0}
+        onSyncComplete={fetchSignalements}
       />
 
       <div style={styles.carteMain}>
@@ -414,64 +347,81 @@ const Carte = () => {
 
         {/* Carte */}
         <div style={styles.mapWrapper}>
-          <MapContainer
-            center={[-18.8792, 47.5079]}
-            zoom={13}
-            style={styles.mapContainer}
-          >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            
-            {SIGNALEMENTS.map((signalement) => (
-              <Marker
-                key={signalement.id}
-                position={[signalement.latitude, signalement.longitude]}
-              >
-                <Popup style={styles.popup}>
-                  <div style={styles.popupHeader}>
-                    <h3 style={styles.popupTitle}>
-                      <i className='bx bx-error-circle'></i>
-                      {signalement.titre}
-                    </h3>
-                    <div style={styles.popupLocation}>
-                      <i className='bx bx-map'></i> {signalement.latitude.toFixed(4)}, {signalement.longitude.toFixed(4)}
-                    </div>
-                  </div>
-                  
-                  <div style={styles.popupInfo}>
-                    <div style={styles.popupRow}>
-                      <span style={styles.popupLabel}>Date:</span>
-                      <span style={styles.popupValue}>{formatDate(signalement.date)}</span>
-                    </div>
-                    
-                    <div style={styles.popupRow}>
-                      <span style={styles.popupLabel}>Status:</span>
-                      <span style={{...styles.statusBadge, ...getStatusStyle(signalement.status)}}>
-                        {getStatusLabel(signalement.status)}
-                      </span>
+          {loading ? (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '500px' }}>
+              <p>Chargement de la carte...</p>
+            </div>
+          ) : (
+            <MapContainer
+              center={[-18.8792, 47.5079]}
+              zoom={13}
+              style={styles.mapContainer}
+            >
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              
+              {signalements.map((signalement) => (
+                <Marker
+                  key={signalement.idSignalement}
+                  position={[signalement.latitude, signalement.longitude]}
+                >
+                  <Popup style={styles.popup}>
+                    <div style={styles.popupHeader}>
+                      <h3 style={styles.popupTitle}>
+                        <i className='bx bx-error-circle'></i>
+                        {signalement.titre}
+                      </h3>
+                      <div style={styles.popupLocation}>
+                        <i className='bx bx-map'></i> {signalement.latitude.toFixed(4)}, {signalement.longitude.toFixed(4)}
+                      </div>
                     </div>
                     
-                    <div style={styles.popupRow}>
-                      <span style={styles.popupLabel}>Surface:</span>
-                      <span style={styles.popupValue}>{signalement.surface} m²</span>
+                    <div style={styles.popupInfo}>
+                      <div style={styles.popupRow}>
+                        <span style={styles.popupLabel}>Date:</span>
+                        <span style={styles.popupValue}>{formatDate(signalement.dateSignalement)}</span>
+                      </div>
+                      
+                      <div style={styles.popupRow}>
+                        <span style={styles.popupLabel}>Status:</span>
+                        <span style={{...styles.statusBadge, ...getStatusStyle(signalement.statut)}}>
+                          {getStatusLabel(signalement.statut)}
+                        </span>
+                      </div>
+                      
+                      {signalement.surfaceM2 && (
+                        <div style={styles.popupRow}>
+                          <span style={styles.popupLabel}>Surface:</span>
+                          <span style={styles.popupValue}>{signalement.surfaceM2} m²</span>
+                        </div>
+                      )}
+                      
+                      {signalement.budget && (
+                        <div style={styles.popupRow}>
+                          <span style={styles.popupLabel}>Budget:</span>
+                          <span style={styles.popupValue}>{formatCurrency(signalement.budget)}</span>
+                        </div>
+                      )}
+                      
+                      {signalement.nomEntreprise && (
+                        <div style={styles.popupRow}>
+                          <span style={styles.popupLabel}>Entreprise:</span>
+                          <span style={styles.popupValue}>{signalement.nomEntreprise}</span>
+                        </div>
+                      )}
+
+                      <div style={styles.popupRow}>
+                        <span style={styles.popupLabel}>Signalé par:</span>
+                        <span style={styles.popupValue}>{signalement.username}</span>
+                      </div>
                     </div>
-                    
-                    <div style={styles.popupRow}>
-                      <span style={styles.popupLabel}>Budget:</span>
-                      <span style={styles.popupValue}>{formatCurrency(signalement.budget)}</span>
-                    </div>
-                    
-                    <div style={styles.popupRow}>
-                      <span style={styles.popupLabel}>Entreprise:</span>
-                      <span style={styles.popupValue}>{signalement.entreprise}</span>
-                    </div>
-                  </div>
-                </Popup>
-              </Marker>
-            ))}
-          </MapContainer>
+                  </Popup>
+                </Marker>
+              ))}
+            </MapContainer>
+          )}
         </div>
       </div>
     </div>

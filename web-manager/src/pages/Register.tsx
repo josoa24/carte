@@ -36,10 +36,15 @@ const Register = () => {
   return (
     <div className="register-container">
       <div className="register-card">
-        <h1>Inscription</h1>
+        <div className="register-header">
+          <div className="logo-circle">
+            <i className="bx bx-user-plus"></i>
+          </div>
+          <h1>Créer un compte</h1>
+          <p className="subtitle">Rejoignez notre plateforme</p>
+        </div>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="username">Nom d'utilisateur</label>
             <input
               type="text"
               id="username"
@@ -47,10 +52,12 @@ const Register = () => {
               onChange={(e) => setUsername(e.target.value)}
               required
               autoComplete="username"
+              placeholder=""
             />
+            <label htmlFor="username">Nom d'utilisateur</label>
+            <i className="bx bx-user"></i>
           </div>
           <div className="form-group">
-            <label htmlFor="email">Email</label>
             <input
               type="email"
               id="email"
@@ -58,10 +65,12 @@ const Register = () => {
               onChange={(e) => setEmail(e.target.value)}
               required
               autoComplete="email"
+              placeholder=""
             />
+            <label htmlFor="email">Email</label>
+            <i className="bx bx-envelope"></i>
           </div>
           <div className="form-group">
-            <label htmlFor="password">Mot de passe</label>
             <input
               type="password"
               id="password"
@@ -69,10 +78,12 @@ const Register = () => {
               onChange={(e) => setPassword(e.target.value)}
               required
               autoComplete="new-password"
+              placeholder=""
             />
+            <label htmlFor="password">Mot de passe</label>
+            <i className="bx bx-lock-alt"></i>
           </div>
           <div className="form-group">
-            <label htmlFor="confirmPassword">Confirmer le mot de passe</label>
             <input
               type="password"
               id="confirmPassword"
@@ -80,11 +91,27 @@ const Register = () => {
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
               autoComplete="new-password"
+              placeholder=""
             />
+            <label htmlFor="confirmPassword">Confirmer le mot de passe</label>
+            <i className="bx bx-lock-alt"></i>
           </div>
-          {error && <div className="error-message">{error}</div>}
+          {error && <div className="error-message">
+            <i className="bx bx-error-circle"></i>
+            {error}
+          </div>}
           <button type="submit" className="btn-primary" disabled={loading}>
-            {loading ? 'Inscription...' : "S'inscrire"}
+            {loading ? (
+              <>
+                <i className="bx bx-loader-alt bx-spin"></i>
+                Inscription...
+              </>
+            ) : (
+              <>
+                <i className="bx bx-user-plus"></i>
+                Créer mon compte
+              </>
+            )}
           </button>
         </form>
         <div className="register-footer">
