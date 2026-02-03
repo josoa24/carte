@@ -14,7 +14,7 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/carte" element={<Carte />} />
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/" element={<Navigate to="/login" replace />} />
         </Routes>
       </Router>
     </AuthProvider>
